@@ -45,3 +45,26 @@ app.post("/log", (req, res) => {
 app.listen(3000, () => {
     console.log("server started");
 });
+
+
+
+
+
+
+
+
+app.post("/log", (req, res) => {
+    user_password = db.each(
+        `SELECT password FROM users WHERE email == (?)`,
+        [req.body.email],
+        function (error) {
+            if (error) {
+                console.error(error.message);
+            }
+            console.log(`Inserted a row with the ID: ${this.lastID}`);
+            selectRows()
+        }
+    );
+    
+    res.send({ status: "ok" });
+});
