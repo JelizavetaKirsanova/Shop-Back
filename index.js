@@ -14,12 +14,12 @@ app.get("/", (req, res) => {
 
 function selectRows() {
     db.each(`SELECT * FROM users`, (error, row) => {
-      if (error) {
-        throw new Error(error.message);
-      }
-      console.log(row);
+        if (error) {
+            throw new Error(error.message);
+        }
+        console.log(row);
     });
-  }
+}
 
 app.post("/reg", (req, res) => {
     db.run(
@@ -30,41 +30,37 @@ app.post("/reg", (req, res) => {
                 console.error(error.message);
             }
             console.log(`Inserted a row with the ID: ${this.lastID}`);
-            selectRows()
+            selectRows();
         }
     );
-    
+
     res.send({ status: "ok" });
 });
 
 app.post("/log", (req, res) => {
-    console.log(req.body);
-    res.send({ status: "ok" });
+    db.each(
+        `SELECT * FROM users WHERE email == (?) AND password == (?)`,
+        [req.body.email, req.body.password],
+        function (error, row) {
+            if (error) {
+                console.error(error.message);
+            }
+            console.log(row);
+            users.push(row)
+        },
+        function (error, count){
+            if (count > 0) {
+                res.send({ status: "ok", user: users.at(0) });
+            } else {
+                res.status(404).send(error.message);
+            }
+        
+        }
+    )
+  
+        
 });
 
 app.listen(3000, () => {
     console.log("server started");
-});
-
-
-
-
-
-
-
-
-app.post("/log", (req, res) => {
-    user_password = db.each(
-        `SELECT password FROM users WHERE email == (?)`,
-        [req.body.email],
-        function (error) {
-            if (error) {
-                console.error(error.message);
-            }
-            console.log(`Inserted a row with the ID: ${this.lastID}`);
-            selectRows()
-        }
-    );
-    
-    res.send({ status: "ok" });
 });
