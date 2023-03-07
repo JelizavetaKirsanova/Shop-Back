@@ -2,8 +2,19 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const dbserices = require("./db.js");
-
+const jwt = require("jsonwebtoken")
 const db = dbserices.createDbConnection();
+
+
+const goods = [
+    { name: "Test 1", description: "Some description", price: 12.0 },
+    { name: "Test 2", description: "Some description", price: 2.0 },
+    { name: "Test 3", description: "Some description", price: 1.00 },
+    { name: "Test 4", description: "Some description", price: 32.0 },
+    { name: "Test 5", description: "Some description", price: 1.0 },
+    { name: "Test 6", description: "Some description", price: 0.50 },
+];
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -44,6 +55,24 @@ function selectRows() {
   });
 }
 
+function createToken(email){
+    const token = jwt.sign({data : email}, 'secretkey', {expiresIn: "10d"})
+    return token
+}
+
+function checkToken(token){
+    const email = jwt.verify(token, 'secretkey')
+    return email
+}
+
+
+
+app.post("/goods", (req, res) => {
+    console.log(checkToken(req.body.token.split("=")[1]))
+    
+    res.send({ status: "ok", goods : goods} )
+})
+
 app.post("/reg", (req, res) => {
     let users = []
   db.each(
@@ -67,7 +96,7 @@ app.post("/reg", (req, res) => {
                 console.error(error.message);
               }
               console.log(`Inserted a row with the ID: ${this.lastID}`);
-              res.send({ status: "ok", user: this });
+              res.send({ status: "ok", token : createToken(req.body.email)} );
             }
           );
       }
@@ -90,7 +119,7 @@ app.post("/log", (req, res) => {
     },
     function (error, count) {
       if (count > 0) {
-        res.send({ status: "ok", user: users.at(0) });
+        res.send({ status: "ok", token : createToken(req.body.email) });
       } else {
         res.status(404).send(error.message);
       }
