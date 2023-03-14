@@ -55,22 +55,37 @@ function selectRows() {
   });
 }
 
+
 function createToken(email){
-    const token = jwt.sign({data : email}, 'secretkey', {expiresIn: "10d"})
+    const token = jwt.sign({data : email}, 'secretkey', {expiresIn: "10m"})
     return token
 }
 
 function checkToken(token){
     const email = jwt.verify(token, 'secretkey')
+    //сделать проверку этого емайла по нашей бд (throw)
+    
     return email
 }
 
+app.post("/checkToken", (req, res) => {
+    try{
+        console.log(checkToken(req.body.token.split("=")[1]))
+        res.send({ status: "ok"} )
+    }catch(e){
+        res.send({"status" : "tokenExpired"})
+    }
+    
+})
 
 
 app.post("/goods", (req, res) => {
-    console.log(checkToken(req.body.token.split("=")[1]))
-    
-    res.send({ status: "ok", goods : goods} )
+    try{
+        console.log(checkToken(req.body.token.split("=")[1]))
+        res.send({ status: "ok", goods : goods} )
+    }catch(e){
+        res.send({"status" : "tokenExpired"})
+    }
 })
 
 app.post("/reg", (req, res) => {
