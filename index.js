@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
 
 function checkUserDb(email) {
   let users = [];
-  let result = true;
+
   db.each(
     `SELECT * FROM users WHERE email == (?)`,
     [email],
@@ -32,16 +32,11 @@ function checkUserDb(email) {
         console.error(error.message);
       }
       users.push(row);
-    },
-    function (error, count) {
-      if (count > 0) {
-        result = true;
-      } else {
-        result = false;
-      }
     }
   );
-  return result;
+  console.log(users)
+  if(users.length == 0) return false
+  return true;
 }
 
 function selectRows() {
@@ -59,31 +54,38 @@ function createToken(email) {
 }
 
 function checkToken(token) {
-  const email = jwt.verify(token, "secretkey");
-  //сделать проверку этого емайла по нашей бд (throw)
-  if (!db.each(`SELECT * FROM users WHERE email == (?)`, [email])) {
+    let t = ""
+    for(let coockie of token.split(" ")){
+      if(coockie.slice(0,5) == "token"){
+        t = coockie.slice(6)
+      }
+    }
+  const email = jwt.verify(t, "secretkey")
+  /*if (!checkUserDb(email)) {
     throw new Error("Incorrect email");
   } else {
     console.log("Ok");
-  }
+  }*/
   return email;
 }
 
 app.post("/checkToken", (req, res) => {
   try {
-    console.log(checkToken(req.body.token.split("=")[1]));
+    console.log(checkToken(req.body.token));
     res.send({ status: "ok" });
   } catch (e) {
-    res.send({ status: "tokenExpired" });
+    console.log(e)
+    res.send({ status: "tokenExpired", error : e });
   }
 });
 
 app.post("/goods", (req, res) => {
   try {
-    console.log(checkToken(req.body.token.split("=")[1]));
+    console.log(checkToken(req.body.token));
     res.send({ status: "ok", goods: goods });
   } catch (e) {
-    res.send({ status: "tokenExpired" });
+    console.log(e)
+    res.send({ status: "tokenExpired", error : e });
   }
 });
 
