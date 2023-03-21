@@ -2,19 +2,17 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const dbserices = require("./db.js");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const db = dbserices.createDbConnection();
 
-
 const goods = [
-    { name: "Test 1", description: "Some description", price: 12.0 },
-    { name: "Test 2", description: "Some description", price: 2.0 },
-    { name: "Test 3", description: "Some description", price: 1.00 },
-    { name: "Test 4", description: "Some description", price: 32.0 },
-    { name: "Test 5", description: "Some description", price: 1.0 },
-    { name: "Test 6", description: "Some description", price: 0.50 },
+  { name: "Test 1", description: "Some description", price: 12.0 },
+  { name: "Test 2", description: "Some description", price: 2.0 },
+  { name: "Test 3", description: "Some description", price: 1.0 },
+  { name: "Test 4", description: "Some description", price: 32.0 },
+  { name: "Test 5", description: "Some description", price: 1.0 },
+  { name: "Test 6", description: "Some description", price: 0.5 },
 ];
-
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -24,8 +22,8 @@ app.get("/", (req, res) => {
 });
 
 function checkUserDb(email) {
-    let users = []
-    let result = true
+  let users = [];
+  let result = true;
   db.each(
     `SELECT * FROM users WHERE email == (?)`,
     [email],
@@ -43,7 +41,7 @@ function checkUserDb(email) {
       }
     }
   );
-  return result
+  return result;
 }
 
 function selectRows() {
@@ -55,41 +53,42 @@ function selectRows() {
   });
 }
 
-
-function createToken(email){
-    const token = jwt.sign({data : email}, 'secretkey', {expiresIn: "10m"})
-    return token
+function createToken(email) {
+  const token = jwt.sign({ data: email }, "secretkey", { expiresIn: "10m" });
+  return token;
 }
 
-function checkToken(token){
-    const email = jwt.verify(token, 'secretkey')
-    //сделать проверку этого емайла по нашей бд (throw)
-    
-    return email
+function checkToken(token) {
+  const email = jwt.verify(token, "secretkey");
+  //сделать проверку этого емайла по нашей бд (throw)
+  if (!db.each(`SELECT * FROM users WHERE email == (?)`, [email])) {
+    throw new Error("Incorrect email");
+  } else {
+    console.log("Ok");
+  }
+  return email;
 }
 
 app.post("/checkToken", (req, res) => {
-    try{
-        console.log(checkToken(req.body.token.split("=")[1]))
-        res.send({ status: "ok"} )
-    }catch(e){
-        res.send({"status" : "tokenExpired"})
-    }
-    
-})
-
+  try {
+    console.log(checkToken(req.body.token.split("=")[1]));
+    res.send({ status: "ok" });
+  } catch (e) {
+    res.send({ status: "tokenExpired" });
+  }
+});
 
 app.post("/goods", (req, res) => {
-    try{
-        console.log(checkToken(req.body.token.split("=")[1]))
-        res.send({ status: "ok", goods : goods} )
-    }catch(e){
-        res.send({"status" : "tokenExpired"})
-    }
-})
+  try {
+    console.log(checkToken(req.body.token.split("=")[1]));
+    res.send({ status: "ok", goods: goods });
+  } catch (e) {
+    res.send({ status: "tokenExpired" });
+  }
+});
 
 app.post("/reg", (req, res) => {
-    let users = []
+  let users = [];
   db.each(
     `SELECT * FROM users WHERE email == (?)`,
     [req.body.email],
@@ -104,24 +103,23 @@ app.post("/reg", (req, res) => {
         res.status(400).send("f");
       } else {
         db.run(
-            `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`,
-            [req.body.name, req.body.email, req.body.password],
-            function (error) {
-              if (error) {
-                console.error(error.message);
-              }
-              console.log(`Inserted a row with the ID: ${this.lastID}`);
-              res.send({ status: "ok", token : createToken(req.body.email)} );
+          `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`,
+          [req.body.name, req.body.email, req.body.password],
+          function (error) {
+            if (error) {
+              console.error(error.message);
             }
-          );
+            console.log(`Inserted a row with the ID: ${this.lastID}`);
+            res.send({ status: "ok", token: createToken(req.body.email) });
+          }
+        );
       }
     }
   );
-
 });
 
 app.post("/log", (req, res) => {
-    let users = []
+  let users = [];
   db.each(
     `SELECT * FROM users WHERE email == (?) AND password == (?)`,
     [req.body.email, req.body.password],
@@ -134,7 +132,7 @@ app.post("/log", (req, res) => {
     },
     function (error, count) {
       if (count > 0) {
-        res.send({ status: "ok", token : createToken(req.body.email) });
+        res.send({ status: "ok", token: createToken(req.body.email) });
       } else {
         res.status(404).send(error.message);
       }
