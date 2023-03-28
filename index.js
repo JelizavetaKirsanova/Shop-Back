@@ -4,10 +4,10 @@ const bodyParser = require("body-parser");
 const dbserices = require("./db.js");
 const jwt = require("jsonwebtoken");
 const db = dbserices.createDbConnection();
-import checkToken from "/functions/checkToken";
-import createToken from "/functions/createToken";
-import selectRows from "/functions/selectRows";
-import checheckUserDb from "/functions/checheckUserDb";
+const checkToken = require("./functions/checkToken");
+const createToken = require("./functions/createToken");
+const selectRows = require("./functions/selectRows") ;
+const checheckUserDb = require("./functions/checkUserDb") ;
 
 const goods = [
   { name: "Test 1", description: "Some description", price: 12.0 },

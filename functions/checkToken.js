@@ -1,3 +1,5 @@
+const jwt = require("jsonwebtoken");
+
 function checkToken(token) {
     let t = ""
     for(let coockie of token.split(" ")){
