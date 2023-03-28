@@ -2,13 +2,10 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const dbserices = require("./db.js");
-const jwt = require("jsonwebtoken");
 const db = dbserices.createDbConnection();
-const checkToken = require("./functions/checkToken");
-const createToken = require("./functions/createToken");
-const selectRows = require("./functions/selectRows") ;
-const checheckUserDb = require("./functions/checkUserDb") ;
-
+const {checkToken} = require("./functions/checkToken");
+const {createToken} = require("./functions/createToken");
+/*
 const goods = [
   { name: "Test 1", description: "Some description", price: 12.0 },
   { name: "Test 2", description: "Some description", price: 2.0 },
@@ -17,7 +14,7 @@ const goods = [
   { name: "Test 5", description: "Some description", price: 1.0 },
   { name: "Test 6", description: "Some description", price: 0.5 },
 ];
-
+*/
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -87,7 +84,21 @@ app.post("/checkToken", (req, res) => {
 app.post("/goods", (req, res) => {
   try {
     console.log(checkToken(req.body.token));
-    res.send({ status: "ok", goods: goods });
+    let goods = []
+    db.each(
+      `SELECT * FROM goods WHERE category == (?)`,
+      [req.body.category], 
+      function (error, row) {
+        if (error) {
+          console.error(error.message);
+        }
+        goods.push(row);
+      },
+      function (error, count) {
+        res.send({ status: "ok", goods: goods });
+      }
+      )
+   
   } catch (e) {
     console.log(e)
     res.send({ status: "tokenExpired", error : e });

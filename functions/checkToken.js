@@ -16,4 +16,4 @@ function checkToken(token) {
   return email;
 }
 
-exports.checkToken = checkToken
+module.exports = {checkToken}
