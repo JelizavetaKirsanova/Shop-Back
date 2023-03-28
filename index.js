@@ -4,6 +4,10 @@ const bodyParser = require("body-parser");
 const dbserices = require("./db.js");
 const jwt = require("jsonwebtoken");
 const db = dbserices.createDbConnection();
+import checkToken from "/functions/checkToken";
+import createToken from "/functions/createToken";
+import selectRows from "/functions/selectRows";
+import checheckUserDb from "/functions/checheckUserDb";
 
 const goods = [
   { name: "Test 1", description: "Some description", price: 12.0 },
@@ -21,6 +25,7 @@ app.get("/", (req, res) => {
   res.send({ message: "hi" });
 });
 
+/*
 function checkUserDb(email) {
   let users = [];
 
@@ -38,7 +43,8 @@ function checkUserDb(email) {
   if(users.length == 0) return false
   return true;
 }
-
+*/
+/*
 function selectRows() {
   db.each(`SELECT * FROM users`, (error, row) => {
     if (error) {
@@ -47,12 +53,15 @@ function selectRows() {
     console.log(row);
   });
 }
+*/
 
+/*
 function createToken(email) {
   const token = jwt.sign({ data: email }, "secretkey", { expiresIn: "10m" });
   return token;
 }
-
+*/
+/*
 function checkToken(token) {
     let t = ""
     for(let coockie of token.split(" ")){
@@ -61,14 +70,10 @@ function checkToken(token) {
       }
     }
   const email = jwt.verify(t, "secretkey")
-  /*if (!checkUserDb(email)) {
-    throw new Error("Incorrect email");
-  } else {
-    console.log("Ok");
-  }*/
+  
   return email;
 }
-
+*/
 app.post("/checkToken", (req, res) => {
   try {
     console.log(checkToken(req.body.token));
