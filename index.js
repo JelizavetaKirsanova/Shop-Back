@@ -81,6 +81,30 @@ app.post("/checkToken", (req, res) => {
   }
 });
 
+app.post("/categories", (req, res) => {
+    try {
+      console.log(checkToken(req.body.token));
+      let categories = []
+      db.each(
+        `SELECT DISTINCT category FROM goods`,
+        [req.body.category], 
+        function (error, row) {
+          if (error) {
+            console.error(error.message);
+          }
+          categories.push(row);
+        },
+        function (error, count) {
+          res.send({ status: "ok", categories: categories });
+        }
+        )
+     
+    } catch (e) {
+      console.log(e)
+      res.send({ status: "tokenExpired", error : e });
+    }
+  })
+
 app.post("/goods", (req, res) => {
   try {
     console.log(checkToken(req.body.token));
