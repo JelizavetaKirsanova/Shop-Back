@@ -1,6 +1,7 @@
+const {checkUserDb} = require("./checkUserDb");
 const jwt = require("jsonwebtoken");
 
-function checkToken(token) {
+async function checkToken(token) {
     let t = ""
     for(let coockie of token.split(" ")){
       if(coockie.slice(0,5) == "token"){
@@ -8,11 +9,11 @@ function checkToken(token) {
       }
     }
   const email = jwt.verify(t, "secretkey")
-  /*if (!checkUserDb(email)) {
+  if (await checkUserDb(email)) {
     throw new Error("Incorrect email");
   } else {
     console.log("Ok");
-  }*/
+  }
   return email;
 }
 
