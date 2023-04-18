@@ -127,39 +127,73 @@ app.post("/goods", async (req, res) => {
     }
 });
 
-app.post("/addGood", async (req, res) => {
-    try{const email = await checkToken(req.body.token);
-    let users = []
-    db.each(
-        `SELECT * FROM users WHERE email == (?)`,
-        [email],
-        function (error, row) {
-            if (error) {
-                console.error(error.message);
-            }
-            users.push(row);
-        },
-        function (error, count) {
-            db.run(
-                `INSERT INTO goods (title, description, price, category, userId) VALUES (?, ?, ?, ?, ?)`,
-                [req.body.title, req.body.description, req.body.price, req.body.category, users[0]],
-                function (error) {
-                    if (error) {
-                        console.error(error.message);
-                    }
-                    console.log(`Inserted a row with the ID: ${this.lastID}`);
-                    res.send({
-                        status: "ok"
-                    });
+app.post("/good", async (req, res) => {
+    try {
+        console.log(await checkToken(req.body.token));
+        let good = {};
+        db.each(
+            `SELECT * FROM goods WHERE id == (?)`,
+            [req.body.id],
+            function (error, row) {
+                if (error) {
+                    console.error(error.message);
                 }
-            );
-        }
-    );}
-    catch(e) {
+                good = row;
+            },
+            function (error, count) {
+                if(count > 0){
+                    res.send({ status: "ok", good: good });
+                }
+                    
+            }
+        );
+    } catch (e) {
         console.log(e);
         res.send({ status: "tokenExpired", error: e });
     }
-    
+});
+
+app.post("/addGood", async (req, res) => {
+    try {
+        const email = await checkToken(req.body.token);
+        let users = [];
+        db.each(
+            `SELECT * FROM users WHERE email == (?)`,
+            [email],
+            function (error, row) {
+                if (error) {
+                    console.error(error.message);
+                }
+                users.push(row);
+            },
+            function (error, count) {
+                db.run(
+                    `INSERT INTO goods (title, description, price, category, userId) VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        req.body.title,
+                        req.body.description,
+                        req.body.price,
+                        req.body.category,
+                        users[0],
+                    ],
+                    function (error) {
+                        if (error) {
+                            console.error(error.message);
+                        }
+                        console.log(
+                            `Inserted a row with the ID: ${this.lastID}`
+                        );
+                        res.send({
+                            status: "ok",
+                        });
+                    }
+                );
+            }
+        );
+    } catch (e) {
+        console.log(e);
+        res.send({ status: "tokenExpired", error: e });
+    }
 });
 
 app.post("/reg", (req, res) => {
