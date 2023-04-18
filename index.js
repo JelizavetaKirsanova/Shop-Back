@@ -128,7 +128,7 @@ app.post("/goods", async (req, res) => {
 });
 
 app.post("/addGood", async (req, res) => {
-    const email = await checkToken(req.body.token);
+    try{const email = await checkToken(req.body.token);
     let users = []
     db.each(
         `SELECT * FROM users WHERE email == (?)`,
@@ -154,7 +154,12 @@ app.post("/addGood", async (req, res) => {
                 }
             );
         }
-    );
+    );}
+    catch(e) {
+        console.log(e);
+        res.send({ status: "tokenExpired", error: e });
+    }
+    
 });
 
 app.post("/reg", (req, res) => {
