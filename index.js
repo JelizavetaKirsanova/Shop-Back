@@ -1,20 +1,20 @@
 const express = require("express");
+const multer = require("multer");
+const cors = require("cors");
+const fs = require('fs');
+const uid = require('uid')
+const path = require('path');
+const fsA = require("fs/promises");
 const app = express();
 const bodyParser = require("body-parser");
 const dbserices = require("./db.js");
 const db = dbserices.createDbConnection();
 const { checkToken } = require("./functions/checkToken");
 const { createToken } = require("./functions/createToken");
-/*
-const goods = [
-  { name: "Test 1", description: "Some description", price: 12.0 },
-  { name: "Test 2", description: "Some description", price: 2.0 },
-  { name: "Test 3", description: "Some description", price: 1.0 },
-  { name: "Test 4", description: "Some description", price: 32.0 },
-  { name: "Test 5", description: "Some description", price: 1.0 },
-  { name: "Test 6", description: "Some description", price: 0.5 },
-];
-*/
+
+
+app.use('/public', express.static(__dirname + '/public/'));
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -22,55 +22,44 @@ app.get("/", (req, res) => {
     res.send({ message: "hi" });
 });
 
-/*
-function checkUserDb(email) {
-  let users = [];
 
-  db.each(
-    `SELECT * FROM users WHERE email == (?)`,
-    [email],
-    function (error, row) {
-      if (error) {
-        console.error(error.message);
-      }
-      users.push(row);
-    }
-  );
-  console.log(users)
-  if(users.length == 0) return false
-  return true;
-}
-*/
-/*
-function selectRows() {
-  db.each(`SELECT * FROM users`, (error, row) => {
-    if (error) {
-      throw new Error(error.message);
-    }
-    console.log(row);
-  });
-}
-*/
+var storage = multer.diskStorage({
 
-/*
-function createToken(email) {
-  const token = jwt.sign({ data: email }, "secretkey", { expiresIn: "10m" });
-  return token;
-}
-*/
-/*
-function checkToken(token) {
-    let t = ""
-    for(let coockie of token.split(" ")){
-      if(coockie.slice(0,5) == "token"){
-        t = coockie.slice(6)
-      }
+    destination: "./public",
+    filename: async function (req, file, cb) {
+        console.log("00000000000000000000")
+        let orFN = file.originalname
+        let category = req.body.category
+        let id = req.body.id
+        console.log(category)
+        console.log(id)
+        const dir = `./public/${category}/${id}`
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir);
+        }
+        
+        cb(null, `${dir}/${uid(16)}${orFN.slice(orFN.lastIndexOf('.'))}`)
+
+        console.log( `${dir}/${uid(16)}${orFN.slice(orFN.lastIndexOf('.'))}`)
     }
-  const email = jwt.verify(t, "secretkey")
-  
-  return email;
-}
-*/
+})
+
+
+
+var upload = multer({ storage: storage }).array('file');
+
+app.post('/upload',function(req, res) {
+    upload(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            return res.status(500).json(err)
+        } else if (err) {
+            return res.status(500).json(err)
+        }
+        return res.status(200).send(req.file)
+    })
+
+});
+
 app.post("/checkToken", async (req, res) => {
     try {
         console.log(await checkToken(req.body.token));
@@ -186,6 +175,7 @@ app.post("/addGood", async (req, res) => {
                         );
                         res.send({
                             status: "ok",
+                            id : this.lastID
                         });
                     }
                 );
