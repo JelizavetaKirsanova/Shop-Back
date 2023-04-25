@@ -127,6 +127,7 @@ app.post("/goods", async (req, res) => {
     }
 });
 
+
 app.post("/good", async (req, res) => {
     try {
         console.log(await checkToken(req.body.token));
