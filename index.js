@@ -93,6 +93,31 @@ app.post("/categories", async (req, res) => {
     }
 });
 
+app.post("/user", async (req, res) => {
+    try {
+        console.log(await checkToken(req.body.token));
+        let users = []
+        db.each(
+            `SELECT * FROM users`,
+            function (error, row) {
+                if (error) {
+                    console.error(error.message);
+                }
+                users.push(row);
+            },
+            function (error, count) {
+                if(count > 0){
+                    res.send({ status: "ok", user: users });
+                }
+                    
+            }
+        );
+    } catch (e) {
+        console.log(e);
+        res.send({ status: "tokenExpired", error: e });
+    }
+});
+
 app.post("/goods", async (req, res) => {
     try {
         console.log(await checkToken(req.body.token));
