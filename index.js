@@ -23,24 +23,28 @@ app.get("/", (req, res) => {
 });
 
 
-var storage = multer.diskStorage({
+class User{
+    constructor(name, email){
+        this.name = name
+        this.email = email
+    }
+}
 
+var storage = multer.diskStorage({
     destination: "./public",
     filename: async function (req, file, cb) {
-        console.log("00000000000000000000")
         let orFN = file.originalname
         let category = req.body.category
         let id = req.body.id
-        console.log(category)
-        console.log(id)
+        
         const dir = `./public/${category}/${id}`
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
         
-        cb(null, `${dir}/${uid(16)}${orFN.slice(orFN.lastIndexOf('.'))}`)
+        cb(null, `${dir}/${uid.uid(16)}${orFN.slice(orFN.lastIndexOf('.'))}`)
 
-        console.log( `${dir}/${uid(16)}${orFN.slice(orFN.lastIndexOf('.'))}`)
+        console.log( `${dir}/${uid.uid(16)}${orFN.slice(orFN.lastIndexOf('.'))}`)
     }
 })
 
@@ -55,6 +59,7 @@ app.post('/upload',function(req, res) {
         } else if (err) {
             return res.status(500).json(err)
         }
+        
         return res.status(200).send(req.file)
     })
 
@@ -69,6 +74,7 @@ app.post("/checkToken", async (req, res) => {
         res.send({ status: "tokenExpired", error: e });
     }
 });
+
 
 app.post("/categories", async (req, res) => {
     try {
@@ -93,7 +99,7 @@ app.post("/categories", async (req, res) => {
     }
 });
 
-app.post("/user", async (req, res) => {
+app.post("/users", async (req, res) => {
     try {
         console.log(await checkToken(req.body.token));
         let users = []
@@ -103,7 +109,7 @@ app.post("/user", async (req, res) => {
                 if (error) {
                     console.error(error.message);
                 }
-                users.push(row);
+                users.push(new User(row.name, row.email));
             },
             function (error, count) {
                 if(count > 0){
@@ -117,6 +123,35 @@ app.post("/user", async (req, res) => {
         res.send({ status: "tokenExpired", error: e });
     }
 });
+
+
+
+app.post("/user", async (req, res) => {
+    try {
+        console.log(await checkToken(req.body.token));
+        let user = {};
+        db.each(
+            `SELECT * FROM users WHERE id == (?)`,
+            [req.body.id],
+            function (error, row) {
+                if (error) {
+                    console.error(error.message);
+                }
+                user = row;
+            },
+            function (error, count) {
+                if(count > 0){
+                    res.send({ status: "ok", user: new User(user.name, user.email) });
+                }
+                    
+            }
+        );
+    } catch (e) {
+        console.log(e);
+        res.send({ status: "tokenExpired", error: e });
+    }
+});
+
 
 app.post("/goods", async (req, res) => {
     try {
