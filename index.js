@@ -30,23 +30,23 @@ class User{
     }
 }
 
-var storage = multer.diskStorage({
-    destination: "./public",
-    filename: async function (req, file, cb) {
-        let orFN = file.originalname
-        let category = req.body.category
-        let id = req.body.id
-        
-        const dir = `./public/${category}/${id}`
-        if (!fs.existsSync(dir)){
-            fs.mkdirSync(dir);
-        }
-        
-        cb(null, `${dir}/${uid.uid(16)}${orFN.slice(orFN.lastIndexOf('.'))}`)
-
-        console.log( `${dir}/${uid.uid(16)}${orFN.slice(orFN.lastIndexOf('.'))}`)
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const category = req.body.category
+      const id = req.body.id
+      const dir = `./public/${category}/${id}`
+      fs.mkdir(dir, { recursive: true }, (err) => {
+        if (err) return cb(err)
+        cb(null, dir)
+      })
+    },
+    filename: function (req, file, cb) {
+      const orFN = file.originalname
+      const ext = path.extname(orFN)
+      const filename = uid.uid(16) + ext
+      cb(null, filename)
     }
-})
+  })
 
 
 
